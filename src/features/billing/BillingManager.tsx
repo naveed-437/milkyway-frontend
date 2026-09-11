@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useAppStore } from '../store/useAppStore.ts';
 import { FileText, Send, DollarSign, Calendar, Landmark, RefreshCw } from 'lucide-react';
+// 🌟 Update this at the top of all three segregated files:
+import { useAppStore } from '../../store/useAppStore';
 
 interface BillingSummary {
   month: string;
