@@ -20,7 +20,8 @@ interface AppState {
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000/api' 
-  : 'https://milkyway-backend-1jaq.onrender.com/';
+  : 'https://milkyway-backend-1jaq.onrender.com/api';
+  
 
 export const useAppStore = create<AppState>((set, get) => ({
   customers: [],
