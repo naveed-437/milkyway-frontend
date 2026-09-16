@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileText, Send, DollarSign, Calendar, Landmark, RefreshCw } from 'lucide-react';
 // 🌟 Update this at the top of all three segregated files:
-import { useAppStore } from '../../store/useAppStore';
+import { API_BASE_URL, useAppStore } from '../../store/useAppStore';
 
 interface BillingSummary {
   month: string;
@@ -35,7 +35,7 @@ export default function BillingManager() {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/ledger/billing/${selectedCustomerId}?month=${selectedMonth}`);
+      const response = await fetch(`${API_BASE_URL}/ledger/billing/${selectedCustomerId}?month=${selectedMonth}`);
       if (!response.ok) throw new Error('Failed to calculate billing invoice metrics');
       const data: BillingSummary = await response.json();
       setInvoice(data);
