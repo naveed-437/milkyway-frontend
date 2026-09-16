@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { useAppStore } from '../../store/useAppStore';
+import { API_BASE_URL, useAppStore } from '../../store/useAppStore';
 import { Package, ClipboardList, ThermometerSnowflake, AlertTriangle, Save, RefreshCw } from 'lucide-react';
 
 interface StockData {
@@ -35,7 +35,7 @@ export default function InventoryManager() {
   const fetchStockMetrics = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/inventory/requirements?date=${selectedDate}`);
+      const response = await fetch(`${API_BASE_URL}/inventory/requirements?date=${selectedDate}`);
       if (!response.ok) throw new Error("Failed to load inventory supply aggregates");
       const data = await response.json();
       setStock(data);
@@ -66,7 +66,7 @@ export default function InventoryManager() {
   const handleIntakeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/inventory/intake', {
+      const response = await fetch(`${API_BASE_URL}/inventory/intake`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +86,7 @@ export default function InventoryManager() {
   const handleReconcileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/inventory/reconcile', {
+      const response = await fetch(`${API_BASE_URL}/inventory/reconcile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
