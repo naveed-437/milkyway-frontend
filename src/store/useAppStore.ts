@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Customer, DeliveryLog } from '../types';
+import type { Customer, DeliveryLog, Product } from '../types'; // 🌟 Added Product typing anchor mapping
 
 interface OfflineQueueItem {
   logId: string;
@@ -33,6 +33,7 @@ const saveOfflineQueue = (queue: OfflineQueueItem[]) => {
 interface AppState {
   customers: Customer[];
   dailyLogs: DeliveryLog[];
+  products: Product[]; // 🌟 NEW STATE: Dynamic array cache for marketplace items
   loading: boolean;
   error: string | null;
   selectedDate: string;
@@ -41,23 +42,26 @@ interface AppState {
   setSelectedDate: (date: string) => void;
   fetchCustomers: () => Promise<void>;
   fetchDailyLogs: (date: string) => Promise<void>;
+  fetchProducts: () => Promise<void>; // 🌟 NEW ACTION: Fetches dynamic catalog from the cloud
   updateDeliveryStatus: (logId: string, status: 'delivered' | 'skipped', quantity: number) => Promise<void>;
   refillCustomerTokens: (customerId: string) => Promise<void>;
   editCustomerProfile: (customerId: string, updatedPayload: Partial<Customer>) => Promise<void>;
   softDeleteCustomer: (customerId: string) => Promise<void>;
   
-  // 🌟 NEW OFFLINE RESILIENCE MANAGEMENT TRIGGERS
+  // 🎟️ OFFLINE RESILIENCE MANAGEMENT TRIGGERS
   syncOfflineQueue: () => Promise<void>;
   checkNetworkStatus: () => void;
 }
 
+// 🌟 FIXED API PATHING: Enforces the trailing '/api' suffix on your Render live web connection string
 export const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api' 
-  : 'https://milkyway-backend-1jaq.onrender.com/api';
+  : 'https://onrender.com';
 
 export const useAppStore = create<AppState>((set, get) => ({
   customers: [],
   dailyLogs: [],
+  products: [], // Initial empty marketplace array state
   loading: false,
   error: null,
   selectedDate: new Date().toISOString().split('T')[0],
@@ -91,7 +95,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const data = await response.json();
       set({ customers: data, loading: false });
       
-      // Save backup layout values into hardware disk memory blocks
+      // Save backup values into hardware disk memory blocks
       localStorage.setItem('milkyway_cached_customers', JSON.stringify(data));
     } catch (err: any) {
       set({ error: err.message, loading: false });
@@ -119,10 +123,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  // 🌟 NEW DYNAMIC CATALOG RECOVERY CONTEXT:
+  fetchProducts: async () => {
+    if (!navigator.onLine) {
+      const cachedProducts = localStorage.getItem('milkyway_cached_products');
+      if (cachedProducts) set({ products: JSON.parse(cachedProducts) });
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/store/catalog`);
+      if (!response.ok) throw new Error('Failed to fetch marketplace catalog database rows');
+      const data = await response.json();
+      set({ products: data, error: null });
+      
+      localStorage.setItem('milkyway_cached_products', JSON.stringify(data));
+    } catch (err: any) {
+      set({ error: err.message });
+    }
+  },
+
   updateDeliveryStatus: async (logId, status, quantity) => {
     const currentLogs = get().dailyLogs;
     
-    // 🌟 LOCAL UI HYDRATION MOCK FOR INSTANT DOORSTEP INTERACTIONS
+    // LOCAL UI HYDRATION MOCK FOR INSTANT DOORSTEP INTERACTIONS
     const updatedLogs = currentLogs.map((log) => {
       if (log._id === logId) {
         // Optimistically calculate temporary local token metrics display adjustments if token customer
@@ -138,7 +162,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ dailyLogs: updatedLogs });
     localStorage.setItem(`milkyway_logs_${get().selectedDate}`, JSON.stringify(updatedLogs));
 
-    // 🌟 THE OFFLINE INTERCEPTOR PIPELINE
+    // THE OFFLINE INTERCEPTOR PIPELINE
     if (!navigator.onLine) {
       const queue = readOfflineQueue();
       queue.push({ logId, status, quantity });
@@ -162,7 +186,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // 🌟 BACKGROUND FLUSH QUEUE LOGIC: Pushes queued modifications back to cloud
+  // BACKGROUND FLUSH QUEUE LOGIC: Pushes queued modifications back to cloud
   syncOfflineQueue: async () => {
     if (!navigator.onLine) return;
 
