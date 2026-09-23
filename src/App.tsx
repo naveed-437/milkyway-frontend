@@ -4,11 +4,12 @@ import CustomerManagement from './features/customers/CustomerManagement';
 import DeliveryRun from './features/ledger/DeliveryRun';
 import BillingManager from './features/billing/BillingManager';
 import InventoryManager from './features/inventory/InventoryManager';
+import MarketplaceHub from './features/marketplace/MarketplaceHub';
 import { useAppStore } from './store/useAppStore';
 import { WifiOff } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'run' | 'inventory' | 'customers' | 'billing'>('run');
+  const [activeTab, setActiveTab] = useState<'run' | 'inventory' | 'marketplace' | 'customers' | 'billing'>('run');
   const { fetchCustomers, checkNetworkStatus, isOfflineMode } = useAppStore();
 
   useEffect(() => {
@@ -39,6 +40,7 @@ function App() {
 
         {activeTab === 'run' && <DeliveryRun />}
         {activeTab === 'inventory' && <InventoryManager />}
+        {activeTab === 'marketplace' && <MarketplaceHub />}
         {activeTab === 'customers' && <CustomerManagement />}
         {activeTab === 'billing' && <BillingManager />}
       </div>

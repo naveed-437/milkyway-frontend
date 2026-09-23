@@ -1,23 +1,23 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Users, Truck, ReceiptIndianRupee, Package, ShieldCheck, DollarSign, Wallet, ShoppingBag } from 'lucide-react';
+import { Users, Truck, ReceiptIndianRupee, Package, ShieldCheck, DollarSign, Wallet, ShoppingBag, Layers } from 'lucide-react';
 
 interface LayoutProps {
-  activeTab: 'run' | 'inventory' | 'customers' | 'billing';
-  setActiveTab: (tab: 'run' | 'inventory' | 'customers' | 'billing') => void;
+  activeTab: 'run' | 'inventory' | 'marketplace' | 'customers' | 'billing';
+  setActiveTab: (tab: 'run' | 'inventory' | 'marketplace' | 'customers' | 'billing') => void;
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({ activeTab, setActiveTab, children }: LayoutProps) {
   const { customers, dailyLogs } = useAppStore();
 
-  const menuItems = [
-    { id: 'run', label: "Today's Route", icon: Truck },
-    { id: 'inventory', label: "Inventory Stock", icon: Package },
-    { id: 'customers', label: "Manage Clients", icon: Users },
-    { id: 'billing', label: "Ledger Billings", icon: ReceiptIndianRupee },
-  ] as const;
-
+ const menuItems = [
+  { id: 'run', label: "Today's Route", icon: Truck },
+  { id: 'inventory', label: "Inventory Stock", icon: Package },
+  { id: 'marketplace', label: "Marketplace Hub", icon: Layers }, // 🌟 MOUNT THE NEW MARKETPLACE HUB
+  { id: 'customers', label: "Manage Clients", icon: Users },
+  { id: 'billing', label: "Ledger Billings", icon: ReceiptIndianRupee },
+] as const;
   // 🌟 LIVE FINANCIAL BUSINESS INTELLIGENCE CALCULATOR ENGINE
   const totalActiveCustomers = customers.filter(c => c.isActive).length;
   

@@ -30,3 +30,13 @@ export interface DeliveryLog {
   notes: string;
   updatedAt?: string;
 }
+
+export interface Product {
+  _id: string;
+  name: string;
+  category: 'Dairy' | 'Spices' | 'Sweets' | 'Groceries' | 'Other';
+  price: number;
+  unit: string;
+  stockAvailable: number;
+  isActive: boolean;
+}
