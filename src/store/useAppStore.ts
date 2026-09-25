@@ -33,22 +33,28 @@ const saveOfflineQueue = (queue: OfflineQueueItem[]) => {
 interface AppState {
   customers: Customer[];
   dailyLogs: DeliveryLog[];
-  products: Product[]; // 🌟 NEW STATE: Dynamic array cache for marketplace items
+  products: Product[];
   loading: boolean;
   error: string | null;
   selectedDate: string;
-  isOfflineMode: boolean; // Tracks browser network status indicators
-  
+  isOfflineMode: boolean;
+
   setSelectedDate: (date: string) => void;
   fetchCustomers: () => Promise<void>;
   fetchDailyLogs: (date: string) => Promise<void>;
-  fetchProducts: () => Promise<void>; // 🌟 NEW ACTION: Fetches dynamic catalog from the cloud
+  fetchProducts: () => Promise<void>;
+  addNewProduct: (productPayload: {
+    name: string;
+    category: string;
+    price: number;
+    unit: string;
+    stockAvailable: number;
+  }) => Promise<void>;
   updateDeliveryStatus: (logId: string, status: 'delivered' | 'skipped', quantity: number) => Promise<void>;
   refillCustomerTokens: (customerId: string) => Promise<void>;
   editCustomerProfile: (customerId: string, updatedPayload: Partial<Customer>) => Promise<void>;
   softDeleteCustomer: (customerId: string) => Promise<void>;
-  
-  // 🎟️ OFFLINE RESILIENCE MANAGEMENT TRIGGERS
+
   syncOfflineQueue: () => Promise<void>;
   checkNetworkStatus: () => void;
 }
@@ -56,7 +62,7 @@ interface AppState {
 // 🌟 FIXED API PATHING: Enforces the trailing '/api' suffix on your Render live web connection string
 export const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api' 
-  : 'https://onrender.com';
+  : 'https://milkyway-backend-1jaq.onrender.com/api';
 
 export const useAppStore = create<AppState>((set, get) => ({
   customers: [],
@@ -123,7 +129,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // 🌟 NEW DYNAMIC CATALOG RECOVERY CONTEXT:
   fetchProducts: async () => {
     if (!navigator.onLine) {
       const cachedProducts = localStorage.getItem('milkyway_cached_products');
@@ -136,10 +141,29 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!response.ok) throw new Error('Failed to fetch marketplace catalog database rows');
       const data = await response.json();
       set({ products: data, error: null });
-      
       localStorage.setItem('milkyway_cached_products', JSON.stringify(data));
     } catch (err: any) {
       set({ error: err.message });
+    }
+  },
+
+  addNewProduct: async (productPayload) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/store/add-item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productPayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save product to database');
+      }
+
+      await get().fetchProducts();
+    } catch (err: any) {
+      set({ error: err.message });
+      throw err;
     }
   },
 

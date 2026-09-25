@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL, useAppStore } from '../../store/useAppStore';
+import { useAppStore } from '../../store/useAppStore';
 import { PackagePlus, LayoutGrid, Award, ShieldCheck, Flame, ShoppingBag, Plus } from 'lucide-react';
 
 type ProductCategory = 'Dairy' | 'Spices' | 'Sweets' | 'Groceries' | 'Other';
@@ -13,7 +13,7 @@ const categoryStyles: Record<ProductCategory, string> = {
 };
 
 export default function MarketplaceHub() {
-  const { products, fetchProducts, customers } = useAppStore();
+  const { products, fetchProducts, customers, addNewProduct } = useAppStore();
   const [activeSubTab, setActiveSubTab] = useState<'store' | 'portfolio'>('store');
 
   const [name, setName] = useState('');
@@ -40,27 +40,18 @@ export default function MarketplaceHub() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/store/catalog`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          category,
-          price: Number(price),
-          unit: unit.trim(),
-          stockAvailable: Number(stock || 0),
-        }),
+      await addNewProduct({
+        name: name.trim(),
+        category,
+        price: Number(price),
+        unit: unit.trim(),
+        stockAvailable: Number(stock || 0),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to register item');
-      }
-
-      alert('🎉 Product successfully added to the marketplace!');
+      alert('🎉 Product successfully saved to the marketplace!');
       setName('');
       setPrice('');
       setStock('10');
-      await fetchProducts();
     } catch (err: any) {
       alert(err.message || 'Unable to add product');
     }
